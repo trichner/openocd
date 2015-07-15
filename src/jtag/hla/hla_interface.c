@@ -210,6 +210,12 @@ int hl_interface_poll_trace(uint8_t *buf, size_t *size)
 	return ERROR_FAIL;
 }
 
+static void hexstring_to_string(char* string, const char* hexstring, size_t size)
+{
+	for (size_t i = 0; i < size; i++)
+    	sscanf(&(hexstring[i * 2]), "%2hhx", &(string[i]));
+}
+
 COMMAND_HANDLER(hl_interface_handle_device_desc_command)
 {
 	LOG_DEBUG("hl_interface_handle_device_desc_command");
@@ -228,7 +234,11 @@ COMMAND_HANDLER(hl_interface_handle_serial_command)
 	LOG_DEBUG("hl_interface_handle_serial_command");
 
 	if (CMD_ARGC == 1) {
-		hl_if.param.serial = strdup(CMD_ARGV[0]);
+		size_t size = strlen(CMD_ARGV[0]);
+		size_t new_size = size/2 + 1;
+		char *serial = (char*) malloc(new_size);
+		hexstring_to_string(serial,CMD_ARGV[0],new_size-1);
+		hl_if.param.serial = serial;
 	} else {
 		LOG_ERROR("expected exactly one argument to hl_serial <serial-number>");
 	}

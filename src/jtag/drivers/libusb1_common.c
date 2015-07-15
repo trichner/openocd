@@ -3,6 +3,8 @@
  *                                                                         *
  *   Copyright (C) 2011 by Mauro Gamba <maurillo71@gmail.com>              *
  *                                                                         *
+ *   Copyright (C) 2015 by Thomas Richner <mail@trichner.com>              *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -40,7 +42,7 @@ static bool jtag_libusb_match(struct libusb_device_descriptor *dev_desc,
 	return false;
 }
 
-void string_to_hexstring(char *buffer, const char *s)
+static void string_to_hexstring(char *buffer, const char *s)
 {
   while(*s){
   	buffer += sprintf(buffer,"%02x", (unsigned int) *s++);
@@ -53,7 +55,8 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 {
 	int retval;
 	bool matched;
-	char desc_string[256+1]; /* Max size of string descriptor */
+	const int DESC_SIZE = 256;
+	char desc_string[DESC_SIZE+1]; /* Max size of string descriptor */
 
 	if (str_index == 0)
 		return false;
@@ -70,10 +73,10 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 
 	matched = strncmp(string, desc_string, sizeof(desc_string)) == 0;
 	if (!matched){
-		char desc_hex[512+1];
+		char desc_hex[DESC_SIZE*2+1];
 		string_to_hexstring(desc_hex,desc_string);
 
-		char req_hex[512+1];
+		char req_hex[DESC_SIZE*2+1];
 		string_to_hexstring(req_hex,string);
 
 		LOG_DEBUG("Device serial number '%s' (0x%s) doesn't match requested serial '%s' (0x%s)",
