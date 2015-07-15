@@ -40,6 +40,13 @@ static bool jtag_libusb_match(struct libusb_device_descriptor *dev_desc,
 	return false;
 }
 
+void string_to_hexstring(char *buffer, const char *s)
+{
+  while(*s){
+  	buffer += sprintf(buffer,"%02x", (unsigned int) *s++);
+  }
+}
+
 /* Returns true if the string descriptor indexed by str_index in device matches string */
 static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_index,
 									const char *string)
@@ -62,9 +69,16 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 	desc_string[sizeof(desc_string)-1] = '\0';
 
 	matched = strncmp(string, desc_string, sizeof(desc_string)) == 0;
-	if (!matched)
-		LOG_DEBUG("Device serial number '%s' doesn't match requested serial '%s'",
-			desc_string, string);
+	if (!matched){
+		char desc_hex[512+1];
+		string_to_hexstring(desc_hex,desc_string);
+
+		char req_hex[512+1];
+		string_to_hexstring(req_hex,string);
+
+		LOG_DEBUG("Device serial number '%s' (0x%s) doesn't match requested serial '%s' (0x%s)",
+			desc_string, desc_hex, string, req_hex);
+	}
 	return matched;
 }
 
